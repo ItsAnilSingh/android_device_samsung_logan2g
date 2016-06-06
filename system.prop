@@ -1,0 +1,13 @@
+#
+# logan2g (GT-S7262)
+#
+ro.sf.lcd_density=240
+ro.sf.lcd_width = 52
+ro.sf.lcd_height = 87
+ro.opengles.version=131072
+ro.product.hardware=logan
+ro.lcd_brightness=160
+debug.hwui.render_dirty_regions=false
+conn.connectivity_change_delay=0
+persist.ttydev=ttyVUART0
+persist.sys.dataprefer.simid=0
