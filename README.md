@@ -1,6 +1,6 @@
 # This repository consists of device tree for GT-S7262 (logan2g) handsets.
 
-# Cyanogenmod 10.1
+# Cyanogenmod 11.0
 
 ### Samsung Galaxy Star Pro/Plus:
  * Manufacturer: Samsung
@@ -25,12 +25,12 @@
 * Open terminal in Cyanogenmod source directory.
 * mkdir -p vendor/samsung
 * cd vendor/samsung/
-* git clone -b cm-10.1 https://github.com/ItsAnilSingh/android_vendor_samsung_logan2g.git logan2g
+* git clone -b cm-11.0 https://github.com/ItsAnilSingh/android_vendor_samsung_logan2g.git logan2g
 
 ### SamsungServiceMode
 * Open terminal in Cyanogenmod source directory.
 * cd packages/apps/
-* git clone -b cm-10.1 https://github.com/CyanogenMod/android_packages_apps_SamsungServiceMode.git SamsungServiceMode
+* git clone -b cm-11.0 https://github.com/CyanogenMod/android_packages_apps_SamsungServiceMode.git SamsungServiceMode
 
 ### Patches
 * Apply patches provided in patches folder.

@@ -7,19 +7,20 @@ TARGET_OTA_ASSERT_DEVICE := logan2g
 # Architecture
 TARGET_ARCH := arm
 TARGET_ARCH_VARIANT := armv7-a-neon
-TARGET_ARCH_VARIANT_CPU := cortex-a5
 TARGET_CPU_ABI := armeabi-v7a
 TARGET_CPU_ABI2 := armeabi
 TARGET_CPU_VARIANT := cortex-a5
 ARCH_ARM_HAVE_ARMV7A := true
 ARCH_ARM_HAVE_TLS_REGISTER := true
+TARGET_GLOBAL_CFLAGS += -mcpu=cortex-a5 -mfloat-abi=softfp -mfpu=neon-vfpv4
+TARGET_GLOBAL_CPPFLAGS += -mcpu=cortex-a5 -mfloat-abi=softfp -mfpu=neon-vfpv4
 
 # GT-S7262 doesnt supports vfp-d32
 ARCH_ARM_HAVE_VFP_D32 := false
 
 # Platform
 TARGET_BOARD_PLATFORM := sc6820i
-TARGET_BOARD_PLATFORM_GPU := mali
+TARGET_BOARD_PLATFORM_GPU := mali-400 MP
 TARGET_BOOTLOADER_BOARD_NAME := logan
 TARGET_NO_BOOTLOADER := true
 TARGET_NO_RADIOIMAGE := true
@@ -35,7 +36,7 @@ BOARD_KERNEL_PAGESIZE := 2048
 BOARD_MKBOOTIMG_ARGS := --kernel_offset 0x00008000 --ramdisk_offset 0x01000000 --tags_offset 0x00000100
 TARGET_KERNEL_SOURCE := kernel/samsung/logan2g
 TARGET_KERNEL_CONFIG := cyanogenmod_logan2g_defconfig
-BOARD_USES_UNCOMPRESSED_BOOT := true
+BOARD_KERNEL_IMAGE_NAME := Image
 TARGET_KERNEL_CUSTOM_TOOLCHAIN := arm-eabi-4.6
 
 # Partition Size
@@ -51,49 +52,35 @@ BOARD_FLASH_BLOCK_SIZE := 131072
 BOARD_VENDOR_USE_AKMD := akmd8975
 
 # Recovery
-TARGET_RECOVERY_INITRC := $(DEVICE_FOLDER)/recovery/init.rc
-TARGET_RECOVERY_FSTAB := $(DEVICE_FOLDER)/recovery/fstab.sc6820i
+TARGET_RECOVERY_FSTAB := $(DEVICE_FOLDER)/rootdir/fstab.sc6820i
 BOARD_CUSTOM_RECOVERY_KEYMAPPING := ../../$(DEVICE_FOLDER)/recovery/recovery_keys.c
 BOARD_USE_CUSTOM_RECOVERY_FONT := \"roboto_15x24.h\"
+TARGET_RECOVERY_PIXEL_FORMAT := "RGBX_8888"
 TARGET_USERIMAGES_USE_EXT4 := true
 BOARD_HAS_LARGE_FILESYSTEM := true
 BOARD_HAS_NO_SELECT_BUTTON := true
 BOARD_HAS_NO_MISC_PARTITION := true
 BOARD_SUPPRESS_EMMC_WIPE := true
-BOARD_UMS_LUNFILE := /sys/class/android_usb/f_mass_storage/lun/file
-TARGET_USE_CUSTOM_LUN_FILE_PATH := /sys/class/android_usb/android0/f_mass_storage/lun/file
-
-# TWRP
-RECOVERY_GRAPHICS_USE_LINELENGTH := true
-DEVICE_RESOLUTION := 480x800
-BOARD_HAS_NO_REAL_SDCARD := true
-RECOVERY_SDCARD_ON_DATA := true
-TW_INTERNAL_STORAGE_PATH := "/data/media"
-TW_INTERNAL_STORAGE_MOUNT_POINT := "sdcard"
-TW_EXTERNAL_STORAGE_PATH := "/external_sd"
-TW_EXTERNAL_STORAGE_MOUNT_POINT := "/external_sd"
-TW_NO_REBOOT_BOOTLOADER := true
-TW_NO_USB_STORAGE := true
-TW_DEFAULT_EXTERNAL_STORAGE := true
-TW_HAS_DOWNLOAD_MODE := true
-TW_USE_MODEL_HARDWARE_ID_FOR_DEVICE_ID := true
-TW_MAX_BRIGHTNESS := 255
-TW_BRIGHTNESS_PATH := /sys/class/backlight/panel/brightness
-TW_CUSTOM_BATTERY_PATH := /sys/class/power_supply/battery
+BOARD_UMS_LUNFILE := /sys/class/android_usb/android0/f_mass_storage/lun/file
+TARGET_USE_CUSTOM_LUN_FILE_PATH := /sys/devices/platform/dwc_otg.0/gadget/lun0/file
 
 # Hardware rendering
 USE_OPENGL_RENDERER := true
 BOARD_EGL_CFG := $(DEVICE_FOLDER)/egl/egl.cfg
-BOARD_EGL_NEEDS_LEGACY_FB := true
-COMMON_GLOBAL_CFLAGS += -DSC6820I_HWC
+BOARD_EGL_NEEDS_FNW := true
+BOARD_USE_MHEAP_SCREENSHOT := true
+BOARD_EGL_WORKAROUND_BUG_10194508 := true
+TARGET_RUNNING_WITHOUT_SYNC_FRAMEWORK := true
+HWUI_COMPILE_FOR_PERF := true
+COMMON_GLOBAL_CFLAGS += -DNEEDS_VECTORIMPL_SYMBOLS
 
 # Camera
 USE_CAMERA_STUB := true
+NEEDS_MEMORYHEAPION := true
 COMMON_GLOBAL_CFLAGS += -DMR0_CAMERA_BLOB
 
 # Audio
-HAVE_HTC_AUDIO_DRIVER := true
-BOARD_USES_GENERIC_AUDIO := true
+BOARD_USES_TINYALSA_AUDIO := true
 COMMON_GLOBAL_CFLAGS += -DMR0_AUDIO_BLOB
 
 # Bluetooth
@@ -119,22 +106,30 @@ WIFI_DRIVER_MODULE_NAME          := "dhd"
 WIFI_DRIVER_MODULE_ARG           := "firmware_path=/system/etc/wifi/bcmdhd_sta.bin nvram_path=/system/etc/wifi/nvram_net.txt"
 WIFI_DRIVER_MODULE_AP_ARG        := "firmware_path=/system/etc/wifi/bcmdhd_apsta.bin nvram_path=/system/etc/wifi/nvram_net.txt"
 WIFI_BAND                        := 802_11_ABG
-
-# Wi-Fi Tethering
-BOARD_HAVE_SAMSUNG_WIFI := true
-BOARD_LEGACY_NL80211_STA_EVENTS := true
-BOARD_NO_APSME_ATTR := true
+BOARD_HAVE_SAMSUNG_WIFI          := true
 
 # RIL
 BOARD_RIL_CLASS := ../../../$(DEVICE_FOLDER)/ril/
 BOARD_MOBILEDATA_INTERFACE_NAME := "rmnet0"
-BOARD_RIL_NO_CELLINFOLIST := true
+COMMON_GLOBAL_CFLAGS += -DSEC_PRODUCT_FEATURE_RIL_CALL_DUALMODE_CDMAGSM
+BOARD_USE_LIBATCHANNEL_WRAPPER := true
+
+# healthd
+BOARD_HAL_STATIC_LIBRARIES := libhealthd.sprd
+
+# CMHW
+BOARD_HARDWARE_CLASS := $(DEVICE_FOLDER)/cmhw/
 
 # Charger
+BACKLIGHT_PATH := /sys/class/backlight/panel/brightness
+BOARD_NO_CHARGER_LED := true
 BOARD_CHARGER_ENABLE_SUSPEND := true
+CHARGING_ENABLED_PATH := /sys/class/power_supply/battery/batt_lp_charging
 BOARD_CHARGING_MODE_BOOTING_LPM := /sys/class/power_supply/battery/batt_lp_charging
 
 # Resolution
+TARGET_LCD_WIDTH := 52
+TARGET_LCD_HEIGHT := 87
 TARGET_SCREEN_WIDTH := 480
 TARGET_SCREEN_HEIGHT := 800
 
@@ -145,3 +140,13 @@ TARGET_BOOTANIMATION_TEXTURE_CACHE := true
 # Font Footprint
 SMALLER_FONT_FOOTPRINT := true
 MINIMAL_FONT_FOOTPRINT := true
+
+# SELinux
+BOARD_SEPOLICY_DIRS += $(DEVICE_FOLDER)/sepolicy
+BOARD_SEPOLICY_UNION += file_contexts
+
+# Using prebuilt webviewchromium compiled for logan2g to reduce compile time
+PRODUCT_PREBUILT_WEBVIEWCHROMIUM := yes
+
+# Enable dex-preoptimization to speed up the first boot sequence
+WITH_DEXPREOPT := true

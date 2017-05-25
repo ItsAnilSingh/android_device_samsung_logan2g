@@ -12,6 +12,7 @@ $(call inherit-product-if-exists, vendor/samsung/logan2g/logan2g-vendor.mk)
 # So we do this little trick to fall back to the normal version if the hdpi doesn't exist.
 PRODUCT_AAPT_CONFIG := normal hdpi
 PRODUCT_AAPT_PREF_CONFIG := hdpi
+PRODUCT_LOCALES += hdpi
 
 # Overlays
 DEVICE_PACKAGE_OVERLAYS += device/samsung/logan2g/overlay
@@ -33,26 +34,28 @@ PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/rootdir/bin/charge:root/bin/charge \
     $(LOCAL_PATH)/rootdir/bin/poweroff_alarm:root/bin/poweroff_alarm
 
-# TWRP
+# Bluetooth
 PRODUCT_COPY_FILES += \
-    $(LOCAL_PATH)/recovery/twrp.fstab:recovery/root/etc/twrp.fstab
-
-PRODUCT_COPY_FILES += \
-    $(LOCAL_PATH)/vold.fstab:system/etc/vold.fstab
+    $(LOCAL_PATH)/bluetooth/bt_vendor.conf:system/etc/bluetooth/bt_vendor.conf
 
 # Hardware-specific files
 PRODUCT_COPY_FILES += \
-    frameworks/native/data/etc/android.hardware.bluetooth.xml:system/etc/permissions/android.hardware.bluetooth.xml \
+    frameworks/native/data/etc/android.hardware.bluetooth_le.xml:system/etc/permissions/android.hardware.bluetooth_le.xml \
     frameworks/native/data/etc/android.hardware.camera.xml:system/etc/permissions/android.hardware.camera.xml \
+    frameworks/native/data/etc/android.hardware.location.xml:system/etc/permissions/android.hardware.location.xml \
     frameworks/native/data/etc/android.hardware.sensor.accelerometer.xml:system/etc/permissions/android.hardware.sensor.accelerometer.xml \
     frameworks/native/data/etc/android.hardware.telephony.gsm.xml:system/etc/permissions/android.hardware.telephony.gsm.xml \
     frameworks/native/data/etc/android.hardware.touchscreen.multitouch.jazzhand.xml:system/etc/permissions/android.hardware.touchscreen.multitouch.jazzhand.xml \
     frameworks/native/data/etc/android.hardware.usb.accessory.xml:system/etc/permissions/android.hardware.usb.accessory.xml \
     frameworks/native/data/etc/android.hardware.usb.host.xml:system/etc/permissions/android.hardware.usb.host.xml \
+    frameworks/native/data/etc/android.hardware.wifi.direct.xml:system/etc/permissions/android.hardware.wifi.direct.xml \
     frameworks/native/data/etc/android.hardware.wifi.xml:system/etc/permissions/android.hardware.wifi.xml \
     frameworks/native/data/etc/android.software.sip.voip.xml:system/etc/permissions/android.software.sip.voip.xml \
     frameworks/native/data/etc/android.software.sip.xml:system/etc/permissions/android.software.sip.xml \
     frameworks/native/data/etc/handheld_core_hardware.xml:system/etc/permissions/handheld_core_hardware.xml
+
+# Wifi files
+$(call inherit-product-if-exists, hardware/broadcom/wlan/bcmdhd/config/config-bcm.mk)
 
 # Packages
 # Filesystem
@@ -64,12 +67,44 @@ PRODUCT_PACKAGES += \
     dhcpcd.conf \
     wpa_supplicant \
     hostapd \
-    wpa_supplicant.conf
+    wpa_supplicant.conf \
+    libnetcmdiface
 
-# Audio
+# Audio & Bluetooth
 PRODUCT_PACKAGES += \
     audio.a2dp.default \
-    audio.usb.default
+    audio.usb.default \
+    audio.r_submix.default \
+    libtinyalsa \
+    tinymix
+
+# SPRD audio
+PRODUCT_PACKAGES += \
+    audio.primary.sc6820i \
+    audio_policy.sc6820i \
+    libaudiopolicy \
+    libaudio-resampler \
+    libvbeffect \
+    libvbpga \
+    audio_vbc_eq
+
+# RIL & Mobile data
+PRODUCT_PACKAGES += \
+    libsecril-client \
+    libatchannel \
+    libatchannel_wrapper
+
+# Camera
+PRODUCT_PACKAGES += \
+    libmemoryheapion
+
+# Init
+PRODUCT_PACKAGES += \
+    prop_init
+
+# Web
+PRODUCT_PACKAGES += \
+    libskia_legacy
 
 # Usb accessory
 PRODUCT_PACKAGES += \
@@ -91,10 +126,33 @@ PRODUCT_PACKAGES += \
 PRODUCT_DEFAULT_PROPERTY_OVERRIDES += \
     persist.sys.usb.config=mtp
 
-# Insecure ADBD
+# Insecure ADB
 ADDITIONAL_DEFAULT_PROPERTIES += \
     ro.secure=0 \
     ro.adb.secure=0
+
+# OpenGLRenderer Configuration
+# https://source.android.com/devices/tech/config/renderer
+PRODUCT_PROPERTY_OVERRIDES += \
+    ro.hwui.texture_cache_size=8 \
+    ro.hwui.layer_cache_size=6 \
+    ro.hwui.gradient_cache_size=0.2 \
+    ro.hwui.path_cache_size=2 \
+    ro.hwui.drop_shadow_cache_size=1 \
+    ro.hwui.r_buffer_cache_size=1
+
+# Enable Low Ram Device flag
+PRODUCT_PROPERTY_OVERRIDES += \
+    ro.config.low_ram=true
+
+# Disable JIT
+PRODUCT_PROPERTY_OVERRIDES += \
+    dalvik.vm.jit.codecachesize=0
+
+# Languages
+PRODUCT_PROPERTY_OVERRIDES += \
+    ro.product.locale.language=en \
+    ro.product.locale.region=GB
 
 # SPRD default build.prop properties overrides
 PRODUCT_PROPERTY_OVERRIDES += \
@@ -111,34 +169,32 @@ PRODUCT_PROPERTY_OVERRIDES += \
 # Extended JNI checks
 # The extended JNI checks will cause the system to run more slowly, but they can spot a variety of nasty bugs
 # before they have a chance to cause problems.
-# Default=true for development builds, set by android buildsystem.
 PRODUCT_PROPERTY_OVERRIDES += \
     ro.kernel.android.checkjni=0 \
     dalvik.vm.checkjni=false
-
-# Override phone-hdpi-512-dalvik-heap to match value on stock.
-# Property override must come before included property.
-PRODUCT_PROPERTY_OVERRIDES += \
-    dalvik.vm.heapgrowthlimit=96m
-
-# Use the Dalvik VM specific for devices with 512 MB of RAM
-include frameworks/native/build/phone-hdpi-512-dalvik-heap.mk
 
 # These are the hardware-specific settings that are stored in system properties.
 # Note that the only such settings should be the ones that are too low-level to be reachable from
 # resources or other mechanisms.
 PRODUCT_PROPERTY_OVERRIDES += \
+    dalvik.vm.heapstartsize=5m \
+    dalvik.vm.heapgrowthlimit=96m \
+    dalvik.vm.heapsize=128m \
+    dalvik.vm.heaptargetutilization=0.25 \
+    dalvik.vm.heapminfree=512k \
+    dalvik.vm.heapmaxfree=2m \
     wifi.interface=wlan0 \
     wifi.supplicant_scan_interval=180 \
-    mobiledata.interfaces=rmnet0 \
     ro.zygote.disable_gl_preload=true \
-    persist.radio.multisim.config=none \
-    ro.telephony.ril_class=SamsungSPRDRIL \
+    persist.radio.multisim.config=dsds \
+    ro.telephony.ril_class=SamsungLogan2GRIL \
+    ro.ril.telephony.mqanelements=5 \
     ro.telephony.call_ring.multiple=0 \
     ro.telephony.call_ring=0 \
-    ro.crypto.state=unsupported \
-    ro.com.google.gmsversion=4.1_r6 \
-    boot.fps=7
+    ro.crypto.state=unsupported
+
+# Using prebuilt webviewchromium compiled for logan2g to reduce compile time
+$(call inherit-product, $(LOCAL_PATH)/prebuilt/chromium/chromium_prebuilt.mk)
 
 PRODUCT_BUILD_PROP_OVERRIDES += BUILD_UTC_DATE=0
 PRODUCT_NAME := full_logan2g
