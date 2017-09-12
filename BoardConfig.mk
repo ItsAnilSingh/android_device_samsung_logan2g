@@ -9,14 +9,13 @@ TARGET_ARCH := arm
 TARGET_ARCH_VARIANT := armv7-a-neon
 TARGET_CPU_ABI := armeabi-v7a
 TARGET_CPU_ABI2 := armeabi
+TARGET_CPU_SMP := false
 # Cortex-A9 is more closer to Cortex-A5 than Cortex-A7
 TARGET_CPU_VARIANT := cortex-a9
 ARCH_ARM_HAVE_ARMV7A := true
-ARCH_ARM_HAVE_VFP := true
-ARCH_ARM_HAVE_NEON := true
 ARCH_ARM_HAVE_TLS_REGISTER := true
-TARGET_GLOBAL_CFLAGS += -mcpu=cortex-a9 -mfloat-abi=softfp -mfpu=neon
-TARGET_GLOBAL_CPPFLAGS += -mcpu=cortex-a9 -mfloat-abi=softfp -mfpu=neon
+TARGET_GLOBAL_CFLAGS += -mtune=cortex-a9 -mfloat-abi=softfp -mfpu=neon
+TARGET_GLOBAL_CPPFLAGS += -mtune=cortex-a9 -mfloat-abi=softfp -mfpu=neon
 
 # GT-S7262 doesnt supports vfp-d32
 ARCH_ARM_HAVE_VFP_D32 := false
@@ -33,18 +32,18 @@ COMMON_GLOBAL_CFLAGS += -DSPRD_HARDWARE
 TARGET_ARCH_LOWMEM := true
 
 # Kernel
-BOARD_KERNEL_CMDLINE := console=ttyS1,115200n8
+BOARD_KERNEL_CMDLINE := console=ttyS1,115200n8 androidboot.selinux=permissive
 BOARD_KERNEL_BASE := 0x00000000
 BOARD_KERNEL_PAGESIZE := 2048
 BOARD_MKBOOTIMG_ARGS := --kernel_offset 0x00008000 --ramdisk_offset 0x01000000 --tags_offset 0x00000100
 TARGET_KERNEL_SOURCE := kernel/samsung/logan2g
 TARGET_KERNEL_CONFIG := cyanogenmod_logan2g_defconfig
 BOARD_KERNEL_IMAGE_NAME := Image
-TARGET_KERNEL_CUSTOM_TOOLCHAIN := arm-eabi-4.8
 
 # Partition Size
 BOARD_BOOTIMAGE_PARTITION_SIZE := 10485760
-BOARD_RECOVERYIMAGE_PARTITION_SIZE := 10485760
+# recovery.img too large in CM-12.1 (maybe due to arm-eabi-4.8)
+# BOARD_RECOVERYIMAGE_PARTITION_SIZE := 10485760
 BOARD_SYSTEMIMAGE_PARTITION_SIZE := 941621248
 BOARD_USERDATAIMAGE_PARTITION_SIZE := 2630614016
 BOARD_CACHEIMAGE_FILE_SYSTEM_TYPE := ext4
@@ -69,22 +68,21 @@ TARGET_USE_CUSTOM_LUN_FILE_PATH := /sys/devices/platform/dwc_otg.0/gadget/lun0/f
 
 # Hardware rendering
 USE_OPENGL_RENDERER := true
-BOARD_EGL_CFG := $(DEVICE_FOLDER)/egl/egl.cfg
 BOARD_EGL_NEEDS_FNW := true
 BOARD_USE_MHEAP_SCREENSHOT := true
 BOARD_EGL_WORKAROUND_BUG_10194508 := true
 TARGET_RUNNING_WITHOUT_SYNC_FRAMEWORK := true
-HWUI_COMPILE_FOR_PERF := true
-COMMON_GLOBAL_CFLAGS += -DNEEDS_VECTORIMPL_SYMBOLS
+COMMON_GLOBAL_CFLAGS += -DNEEDS_VECTORIMPL_SYMBOLS -DADD_LEGACY_ACQUIRE_BUFFER_SYMBOL -DREFBASE_JB_MR1_COMPAT_SYMBOLS
+TARGET_RELEASE_CPPFLAGS += -DNEEDS_VECTORIMPL_SYMBOLS
 
 # Camera
 USE_CAMERA_STUB := true
-NEEDS_MEMORYHEAPION := true
 COMMON_GLOBAL_CFLAGS += -DMR0_CAMERA_BLOB
 
 # Audio
 BOARD_USES_TINYALSA_AUDIO := true
-COMMON_GLOBAL_CFLAGS += -DMR0_AUDIO_BLOB
+USE_LEGACY_AUDIO_POLICY := 1
+LOCAL_CFLAGS += -DMR0_AUDIO_BLOB -DICS_AUDIO_BLOB
 
 # Bluetooth
 BOARD_HAVE_BLUETOOTH := true
@@ -113,9 +111,13 @@ BOARD_HAVE_SAMSUNG_WIFI          := true
 
 # RIL
 BOARD_RIL_CLASS := ../../../$(DEVICE_FOLDER)/ril/
-BOARD_MOBILEDATA_INTERFACE_NAME := "rmnet0"
 COMMON_GLOBAL_CFLAGS += -DSEC_PRODUCT_FEATURE_RIL_CALL_DUALMODE_CDMAGSM
 BOARD_USE_LIBATCHANNEL_WRAPPER := true
+
+# FM Radio
+BOARD_HAVE_FM_RADIO := true
+BOARD_FM_DEVICE := bcm4330
+BOARD_GLOBAL_CFLAGS += -DHAVE_FM_RADIO
 
 # healthd
 BOARD_HAL_STATIC_LIBRARIES := libhealthd.sprd
@@ -124,15 +126,10 @@ BOARD_HAL_STATIC_LIBRARIES := libhealthd.sprd
 BOARD_HARDWARE_CLASS := $(DEVICE_FOLDER)/cmhw/
 
 # Charger
-BACKLIGHT_PATH := /sys/class/backlight/panel/brightness
-BOARD_NO_CHARGER_LED := true
 BOARD_CHARGER_ENABLE_SUSPEND := true
-CHARGING_ENABLED_PATH := /sys/class/power_supply/battery/batt_lp_charging
 BOARD_CHARGING_MODE_BOOTING_LPM := /sys/class/power_supply/battery/batt_lp_charging
 
 # Resolution
-TARGET_LCD_WIDTH := 52
-TARGET_LCD_HEIGHT := 87
 TARGET_SCREEN_WIDTH := 480
 TARGET_SCREEN_HEIGHT := 800
 
@@ -141,15 +138,25 @@ TARGET_BOOTANIMATION_PRELOAD := true
 TARGET_BOOTANIMATION_TEXTURE_CACHE := true
 
 # Font Footprint
-SMALLER_FONT_FOOTPRINT := true
-MINIMAL_FONT_FOOTPRINT := true
+EXTENDED_FONT_FOOTPRINT := true
+
+# Compat
+TARGET_USES_LOGD := false
+
+# jemalloc causes a lot of random crash on free()
+MALLOC_IMPL := dlmalloc
 
 # SELinux
 BOARD_SEPOLICY_DIRS += $(DEVICE_FOLDER)/sepolicy
-BOARD_SEPOLICY_UNION += file_contexts
+BOARD_SEPOLICY_UNION += \
+    at_distributor.te \
+    device.te \
+    file_contexts \
+    init.te \
+    netd.te \
+    pty_symlink.te \
+    slog.te \
+    surfaceflinger.te
 
 # Using prebuilt webviewchromium compiled for logan2g to reduce compile time
 PRODUCT_PREBUILT_WEBVIEWCHROMIUM := yes
-
-# Enable dex-preoptimization to speed up the first boot sequence
-WITH_DEXPREOPT := true

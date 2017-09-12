@@ -1,0 +1,79 @@
+From 1ee90ff836265e70b8dc0357e86e18502ea46230 Mon Sep 17 00:00:00 2001
+From: Pawit Pornkitprasan <p.pawit@gmail.com>
+Date: Mon, 16 Dec 2013 15:45:42 +0700
+Subject: [PATCH 3/5] sf: CAPRI_HWC: fix rotation artifact
+
+Added other Spreadtrum related patches too
+---
+diff --git a/services/surfaceflinger/SurfaceFlinger.cpp b/services/surfaceflinger/SurfaceFlinger.cpp
+index dfe5754..c608397 100644
+--- a/services/surfaceflinger/SurfaceFlinger.cpp
++++ b/services/surfaceflinger/SurfaceFlinger.cpp
+@@ -3748,6 +3748,11 @@ status_t SurfaceFlinger::captureScreenImplLocked(
+ {
+     ATRACE_CALL();
+ 
++// Rotation artifact problems when useReadPixels is false
++#ifdef SPRD_HARDWARE
++    useReadPixels = true;
++#endif
++
+     // get screen geometry
+     const uint32_t hw_w = hw->getWidth();
+     const uint32_t hw_h = hw->getHeight();
+diff --git a/include/media/openmax/OMX_IVCommon.h b/include/media/openmax/OMX_IVCommon.h
+index a5b9d18..d57afa1 100644
+--- a/include/media/openmax/OMX_IVCommon.h
++++ b/include/media/openmax/OMX_IVCommon.h
+@@ -169,6 +169,9 @@ typedef enum OMX_COLOR_FORMATTYPE {
+     OMX_QCOM_COLOR_FormatYUV420PackedSemiPlanar64x32Tile2m8ka = 0x7FA30C03,
+     OMX_SEC_COLOR_FormatNV12Tiled = 0x7FC00002,
+     OMX_QCOM_COLOR_FormatYUV420PackedSemiPlanar32m = 0x7FA30C04,
++#ifdef SPRD_HARDWARE
++    OMX_SPRD_COLOR_FormatYVU420SemiPlanar = 0x7FD00001,
++#endif
+     OMX_COLOR_FormatMax = 0x7FFFFFFF
+ } OMX_COLOR_FORMATTYPE;
+ 
+diff --git a/include/media/openmax/OMX_Index.h b/include/media/openmax/OMX_Index.h
+index 1a2a548..2d87082 100644
+--- a/include/media/openmax/OMX_Index.h
++++ b/include/media/openmax/OMX_Index.h
+@@ -262,6 +262,23 @@ typedef enum OMX_INDEXTYPE {
+        private indexes are not guaranteed unique and therefore should
+        only be sent to the appropriate component. */
+ 
++#ifdef SPRD_HARDWARE
++    /* for Android Native Window */
++#define SPRD_INDEX_PARAM_ENABLE_ANB "OMX.google.android.index.enableAndroidNativeBuffers"
++    OMX_IndexParamEnableAndroidBuffers         = 0x7F000011,
++#define SPRD_INDEX_PARAM_GET_ANB "OMX.google.android.index.getAndroidNativeBufferUsage"
++    OMX_IndexParamGetAndroidNativeBuffer       = 0x7F000012,
++#define SPRD_INDEX_PARAM_USE_ANB "OMX.google.android.index.useAndroidNativeBuffer2"
++    OMX_IndexParamUseAndroidNativeBuffer2      = 0x7F000013,
++    /* for Android Store Metadata Inbuffer */
++#define SPRD_INDEX_PARAM_STORE_METADATA_BUFFER "OMX.google.android.index.storeMetaDataInBuffers"
++    OMX_IndexParamStoreMetaDataBuffer          = 0x7F000014,
++#define SPRD_INDEX_PARAM_PREPEND_SPSPPS_TO_IDR "OMX.google.android.index.prependSPSPPSToIDRFrames"
++    OMX_IndexParamPrependSPSPPSToIDR           = 0x7F000015,
++#define SPRD_INDEX_CONFIG_THUMBNAIL_MODE "OMX.sprd.index.ThumbnailMode"
++    OMX_IndexConfigThumbnailMode               = 0x7F000016,
++#endif
++
+     OMX_IndexMax = 0x7FFFFFFF
+ 
+ } OMX_INDEXTYPE;
+diff --git a/include/ui/PixelFormat.h b/include/ui/PixelFormat.h
+index ed7c1d8..7488d40 100644
+--- a/include/ui/PixelFormat.h
++++ b/include/ui/PixelFormat.h
+@@ -63,6 +63,9 @@ enum {
+     PIXEL_FORMAT_BGRA_8888   = HAL_PIXEL_FORMAT_BGRA_8888,   // 4x8-bit BGRA
+     PIXEL_FORMAT_RGBA_5551   = 6,                            // 16-bit ARGB
+     PIXEL_FORMAT_RGBA_4444   = 7,                            // 16-bit ARGB
++#ifdef SPRD_HARDWARE
++    PIXEL_FORMAT_YCbCr_420_SP= 25,
++#endif
+     PIXEL_FORMAT_sRGB_A_8888 = HAL_PIXEL_FORMAT_sRGB_A_8888, // 4x8-bit sRGB + A
+     PIXEL_FORMAT_sRGB_X_8888 = HAL_PIXEL_FORMAT_sRGB_X_8888, // 4x8-bit sRGB, no A
+ };

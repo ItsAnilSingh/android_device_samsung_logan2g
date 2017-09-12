@@ -1,0 +1,122 @@
+From: Anil Singh <canilsingh07@gmail.com>
+Date: Thu, 14 Jun 2016 14:32:00 +0530
+Subject: [PATCH] frameworks/av: SPRD video fix
+Rebased on ih24n69's patches
+---
+diff --git a/media/libstagefright/ACodec.cpp b/media/libstagefright/ACodec.cpp
+index 05f8131..30a6996 100644
+--- a/media/libstagefright/ACodec.cpp
++++ b/media/libstagefright/ACodec.cpp
+@@ -93,8 +93,10 @@
+ #include "include/ExtendedUtils.h"
+ 
+ #ifdef USE_SAMSUNG_COLORFORMAT
++#ifndef SPRD_HARDWARE
+ #include <sec_format.h>
+ #endif
++#endif
+ 
+ #include "include/avc_utils.h"
+ 
+@@ -1051,6 +1053,10 @@ void ACodec::setNativeWindowColorFormat(OMX_COLOR_FORMATTYPE &eNativeColorFormat
+ {
+     // In case of Samsung decoders, we set proper native color format for the Native Window
+     if (!strcasecmp(mComponentName.c_str(), "OMX.SEC.AVC.Decoder")
++        || !strcasecmp(mComponentName.c_str(), "OMX.sprd.mpeg4.decoder")
++        || !strcasecmp(mComponentName.c_str(), "OMX.sprd.h263.decoder")
++        || !strcasecmp(mComponentName.c_str(), "OMX.sprd.h264.decoder")
++        || !strcasecmp(mComponentName.c_str(), "OMX.sprd.vpx.decoder")
+         || !strcasecmp(mComponentName.c_str(), "OMX.SEC.FP.AVC.Decoder")
+         || !strcasecmp(mComponentName.c_str(), "OMX.SEC.MPEG4.Decoder")
+         || !strcasecmp(mComponentName.c_str(), "OMX.Exynos.AVC.Decoder")) {
+diff --git a/media/libstagefright/CameraSource.cpp b/media/libstagefright/CameraSource.cpp
+index 006ef5e..07d2c23 100644
+--- a/media/libstagefright/CameraSource.cpp
++++ b/media/libstagefright/CameraSource.cpp
+@@ -108,7 +108,7 @@ static int32_t getColorFormat(const char* colorFormat) {
+     }
+ 
+     if (!strcmp(colorFormat, CameraParameters::PIXEL_FORMAT_YUV420SP)) {
+-#ifdef USE_SAMSUNG_COLORFORMAT
++#if defined(USE_SAMSUNG_COLORFORMAT) && !defined(SPRD_HARDWARE)
+         static const int OMX_SEC_COLOR_FormatNV12LPhysicalAddress = 0x7F000002;
+         return OMX_SEC_COLOR_FormatNV12LPhysicalAddress;
+ #else
+diff --git a/media/libstagefright/OMXCodec.cpp b/media/libstagefright/OMXCodec.cpp
+index 3706e9b..e97b781 100644
+--- a/media/libstagefright/OMXCodec.cpp
++++ b/media/libstagefright/OMXCodec.cpp
+@@ -116,8 +116,10 @@
+ #endif
+ 
+ #ifdef USE_SAMSUNG_COLORFORMAT
++#ifndef SPRD_HARDWARE
+ #include <sec_format.h>
+ #endif
++#endif
+ 
+ #ifdef USE_S3D_SUPPORT
+ #include "Exynos_OMX_Def.h"
+@@ -2509,9 +2511,11 @@ void OMXCodec::setNativeWindowColorFormat(OMX_COLOR_FORMATTYPE &eNativeColorForm
+     // Convert OpenMAX color format to native color format
+     switch (eNativeColorFormat) {
+         // In case of SAMSUNG color format
++#ifndef SPRD_HARDWARE
+         case OMX_SEC_COLOR_FormatNV12TPhysicalAddress:
+             eNativeColorFormat = (OMX_COLOR_FORMATTYPE)HAL_PIXEL_FORMAT_CUSTOM_YCbCr_420_SP_TILED;
+             break;
++#endif
+         case OMX_SEC_COLOR_FormatNV12Tiled:
+             eNativeColorFormat = (OMX_COLOR_FORMATTYPE)HAL_PIXEL_FORMAT_YCbCr_420_SP_TILED;
+             break;
+diff --git a/services/audioflinger/AudioFlinger.cpp b/services/audioflinger/AudioFlinger.cpp
+index 0c9b646..bfa95a9 100644
+--- a/services/audioflinger/AudioFlinger.cpp
++++ b/services/audioflinger/AudioFlinger.cpp
+@@ -193,11 +193,13 @@ static int load_audio_interface(const char *if_name, audio_hw_device_t **dev)
+     if (rc) {
+         goto out;
+     }
++#if !defined(ICS_AUDIO_BLOB) && !defined(MR0_AUDIO_BLOB)
+     if ((*dev)->common.version < AUDIO_DEVICE_API_VERSION_MIN) {
+         ALOGE("%s wrong audio hw device version %04x", __func__, (*dev)->common.version);
+         rc = BAD_VALUE;
+         goto out;
+     }
++#endif
+     return 0;
+ 
+ out:
+@@ -1873,7 +1875,7 @@ audio_module_handle_t AudioFlinger::loadHwModule_l(const char *name)
+     AudioHwDevice::Flags flags = static_cast<AudioHwDevice::Flags>(0);
+     {  // scope for auto-lock pattern
+         AutoMutex lock(mHardwareLock);
+-
++#if !defined(ICS_AUDIO_BLOB) && !defined(MR0_AUDIO_BLOB)
+         if (0 == mAudioHwDevs.size()) {
+             mHardwareStatus = AUDIO_HW_GET_MASTER_VOLUME;
+             if (NULL != dev->get_master_volume) {
+@@ -1891,20 +1893,21 @@ audio_module_handle_t AudioFlinger::loadHwModule_l(const char *name)
+                 }
+             }
+         }
+-
++#endif
+         mHardwareStatus = AUDIO_HW_SET_MASTER_VOLUME;
+         if ((NULL != dev->set_master_volume) &&
+             (OK == dev->set_master_volume(dev, mMasterVolume))) {
+             flags = static_cast<AudioHwDevice::Flags>(flags |
+                     AudioHwDevice::AHWD_CAN_SET_MASTER_VOLUME);
+         }
+-
++#if !defined(ICS_AUDIO_BLOB) && !defined(MR0_AUDIO_BLOB)
+         mHardwareStatus = AUDIO_HW_SET_MASTER_MUTE;
+         if ((NULL != dev->set_master_mute) &&
+             (OK == dev->set_master_mute(dev, mMasterMute))) {
+             flags = static_cast<AudioHwDevice::Flags>(flags |
+                     AudioHwDevice::AHWD_CAN_SET_MASTER_MUTE);
+         }
++#endif
+ 
+         mHardwareStatus = AUDIO_HW_IDLE;
+     }

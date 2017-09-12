@@ -13,24 +13,21 @@ conn.connectivity_change_delay=0
 # NK console device
 persist.ttydev=ttyVUART0
 
+# Open GL
+ro.kernel.qemu=0
+
+persist.sys.storage_preload=1
+
 # Network
 ril.sim2.present=1
 rild.libpath=/system/lib/libsec-ril.so
 rild.libargs=-d /dev/ttyS0
 # 1 => GSM Only
-# ro.telephony.default_network=1
 gsm.current.phone-type=1
 ro.ril.hsxpa=1
-# ro.ril.gprsclass=12
 ro.ril.ecclist=112,911,#911,*911
-# mobiledata.interfaces=rmnet0,rmnet1
 
-# MultiTouch support
-ro.product.multi_touch_enabled=true
-ro.product.max_num_touch=2
-
-# Partition path
-ro.product.partitionpath=/dev/block/platform/sprd-sdhci.3/by-name/
-
-# enable adbd during first boot (for dalvik cache problems)
-persist.service.adb.enable=1
+# low RAM optimizations
+config.disable_atlas=true
+ro.config.max_starting_bg=8
+ro.sys.fw.bg_apps_limit=16

@@ -1,0 +1,201 @@
+From: Anil Singh <canilsingh07@gmail.com>
+Date: Thu, 14 Jun 2016 14:32:00 +0530
+Subject: [PATCH] system/core: SPRD Video Patch
+
+Rebased on ih24n69's patches
+---
+diff --git a/include/cutils/klog.h b/include/cutils/klog.h
+index d5ae6d7..ebe9554 100644
+--- a/include/cutils/klog.h
++++ b/include/cutils/klog.h
+@@ -44,6 +44,6 @@ __END_DECLS
+ #define KLOG_INFO(tag,x...)    klog_write(KLOG_INFO_LEVEL, "<6>" tag ": " x)
+ #define KLOG_DEBUG(tag,x...)   klog_write(KLOG_DEBUG_LEVEL, "<7>" tag ": " x)
+ 
+-#define KLOG_DEFAULT_LEVEL  3  /* messages <= this level are logged */
++#define KLOG_DEFAULT_LEVEL  7  /* messages <= this level are logged */
+ 
+ #endif
+diff --git a/include/system/audio.h b/include/system/audio.h
+index 093da96..02c7657 100644
+--- a/include/system/audio.h
++++ b/include/system/audio.h
+@@ -67,6 +67,9 @@ typedef enum {
+     AUDIO_STREAM_TTS              = 9,  /* Transmitted Through Speaker.
+                                          * Plays over speaker only, silent on other devices.
+                                          */
++#ifdef SPRD_HARDWARE
++    AUDIO_STREAM_FM               = 10,
++#endif
+     AUDIO_STREAM_ACCESSIBILITY    = 10, /* For accessibility talk back prompts */
+     AUDIO_STREAM_REROUTING        = 11, /* For dynamic policy output mixes */
+     AUDIO_STREAM_PATCH            = 12, /* For internal audio flinger tracks. Fixed volume */
+@@ -150,6 +153,9 @@ typedef enum {
+                                           /* An example of remote presentation is Wifi Display */
+                                           /*  where a dongle attached to a TV can be used to   */
+                                           /*  play the mix captured by this audio source.      */
++#ifdef SPRD_HARDWARE
++    AUDIO_SOURCE_RECORD_NO_AUDIO     = 9, /* SPRD: add one audioSource type for slow motion */
++#endif
+ #ifdef QCOM_HARDWARE
+     AUDIO_SOURCE_FM_RX               = 10,
+     AUDIO_SOURCE_FM_RX_A2DP          = 11,
+@@ -643,7 +649,11 @@ typedef enum {
+ enum {
+     AUDIO_DEVICE_NONE                          = 0x0,
+     /* reserved bits */
++#if defined(ICS_AUDIO_BLOB) || defined(MR0_AUDIO_BLOB)
++    AUDIO_DEVICE_BIT_IN                        = 0x10000,
++#else
+     AUDIO_DEVICE_BIT_IN                        = 0x80000000,
++#endif
+     AUDIO_DEVICE_BIT_DEFAULT                   = 0x40000000,
+     /* output devices */
+     AUDIO_DEVICE_OUT_EARPIECE                  = 0x1,
+@@ -684,6 +694,10 @@ enum {
+     AUDIO_DEVICE_OUT_FM_TX                     = 0x1000000,
+     AUDIO_DEVICE_OUT_PROXY                     = 0x2000000,
+ #endif
++#if defined(SPRD_HARDWARE)
++    AUDIO_DEVICE_OUT_FM_HEADSET                = 0x1000000,
++    AUDIO_DEVICE_OUT_FM_SPEAKER                = 0x2000000,
++#endif
+     AUDIO_DEVICE_OUT_DEFAULT                   = AUDIO_DEVICE_BIT_DEFAULT,
+     AUDIO_DEVICE_OUT_ALL      = (AUDIO_DEVICE_OUT_EARPIECE |
+                                  AUDIO_DEVICE_OUT_SPEAKER |
+@@ -712,6 +726,10 @@ enum {
+                                  AUDIO_DEVICE_OUT_FM_TX |
+                                  AUDIO_DEVICE_OUT_PROXY |
+ #endif
++#if defined(SPRD_HARDWARE)
++                                 AUDIO_DEVICE_OUT_FM_HEADSET |
++                                 AUDIO_DEVICE_OUT_FM_SPEAKER |
++#endif
+                                  AUDIO_DEVICE_OUT_DEFAULT),
+     AUDIO_DEVICE_OUT_ALL_A2DP = (AUDIO_DEVICE_OUT_BLUETOOTH_A2DP |
+                                  AUDIO_DEVICE_OUT_BLUETOOTH_A2DP_HEADPHONES |
+@@ -721,8 +739,43 @@ enum {
+                                  AUDIO_DEVICE_OUT_BLUETOOTH_SCO_CARKIT),
+     AUDIO_DEVICE_OUT_ALL_USB  = (AUDIO_DEVICE_OUT_USB_ACCESSORY |
+                                  AUDIO_DEVICE_OUT_USB_DEVICE),
++#if defined(SPRD_HARDWARE)
++    AUDIO_DEVICE_OUT_ALL_FM   = (AUDIO_DEVICE_OUT_FM_HEADSET |
++                                 AUDIO_DEVICE_OUT_FM_SPEAKER),
++#endif
+ 
+     /* input devices */
++#if defined(ICS_AUDIO_BLOB) || defined(MR0_AUDIO_BLOB)
++    AUDIO_DEVICE_IN_COMMUNICATION         = AUDIO_DEVICE_BIT_IN * 0x1,
++    AUDIO_DEVICE_IN_AMBIENT               = AUDIO_DEVICE_BIT_IN * 0x2,
++    AUDIO_DEVICE_IN_BUILTIN_MIC           = AUDIO_DEVICE_BIT_IN * 0x4,
++    AUDIO_DEVICE_IN_BLUETOOTH_SCO_HEADSET = AUDIO_DEVICE_BIT_IN * 0x8,
++    AUDIO_DEVICE_IN_WIRED_HEADSET         = AUDIO_DEVICE_BIT_IN * 0x10,
++    AUDIO_DEVICE_IN_AUX_DIGITAL           = AUDIO_DEVICE_BIT_IN * 0x20,
++    AUDIO_DEVICE_IN_HDMI                  = AUDIO_DEVICE_IN_AUX_DIGITAL,
++    /* Telephony voice RX path */
++    AUDIO_DEVICE_IN_VOICE_CALL            = AUDIO_DEVICE_BIT_IN * 0x40,
++    AUDIO_DEVICE_IN_TELEPHONY_RX          = AUDIO_DEVICE_IN_VOICE_CALL,
++    AUDIO_DEVICE_IN_BACK_MIC              = AUDIO_DEVICE_BIT_IN * 0x80,
++    AUDIO_DEVICE_IN_REMOTE_SUBMIX         = AUDIO_DEVICE_BIT_IN * 0x100,
++    AUDIO_DEVICE_IN_ANLG_DOCK_HEADSET     = AUDIO_DEVICE_BIT_IN * 0x200,
++    AUDIO_DEVICE_IN_DGTL_DOCK_HEADSET     = AUDIO_DEVICE_BIT_IN * 0x400,
++    AUDIO_DEVICE_IN_USB_ACCESSORY         = AUDIO_DEVICE_BIT_IN * 0x800,
++    AUDIO_DEVICE_IN_USB_DEVICE            = AUDIO_DEVICE_BIT_IN * 0x1000,
++    AUDIO_DEVICE_IN_ANC_HEADSET           = AUDIO_DEVICE_BIT_IN | 0x2000,
++    AUDIO_DEVICE_IN_PROXY                 = AUDIO_DEVICE_BIT_IN | 0x4000,
++    AUDIO_DEVICE_IN_DEFAULT               = AUDIO_DEVICE_IN_BUILTIN_MIC,
++    /* FM tuner input */
++    AUDIO_DEVICE_IN_FM_TUNER              = AUDIO_DEVICE_BIT_IN | 0x2000,
++    /* TV tuner input */
++    AUDIO_DEVICE_IN_TV_TUNER              = AUDIO_DEVICE_BIT_IN | 0x4000,
++    /* Analog jack with line impedance detected */
++    AUDIO_DEVICE_IN_LINE                  = AUDIO_DEVICE_BIT_IN | 0x8000,
++    /* S/PDIF in */
++    AUDIO_DEVICE_IN_SPDIF                 = AUDIO_DEVICE_BIT_IN | 0x10000,
++    AUDIO_DEVICE_IN_BLUETOOTH_A2DP        = AUDIO_DEVICE_BIT_IN | 0x20000,
++    AUDIO_DEVICE_IN_LOOPBACK              = AUDIO_DEVICE_BIT_IN | 0x40000,
++#else
+     AUDIO_DEVICE_IN_COMMUNICATION         = AUDIO_DEVICE_BIT_IN | 0x1,
+     AUDIO_DEVICE_IN_AMBIENT               = AUDIO_DEVICE_BIT_IN | 0x2,
+     AUDIO_DEVICE_IN_BUILTIN_MIC           = AUDIO_DEVICE_BIT_IN | 0x4,
+@@ -755,6 +808,7 @@ enum {
+     AUDIO_DEVICE_IN_FM_RX_A2DP            = AUDIO_DEVICE_BIT_IN | 0x400000,
+ #endif
+     AUDIO_DEVICE_IN_DEFAULT               = AUDIO_DEVICE_BIT_IN | AUDIO_DEVICE_BIT_DEFAULT,
++#endif
+ 
+     AUDIO_DEVICE_IN_ALL     = (AUDIO_DEVICE_IN_COMMUNICATION |
+                                AUDIO_DEVICE_IN_AMBIENT |
+diff --git a/include/system/graphics.h b/include/system/graphics.h
+index b207ee8..c12ad6f 100644
+--- a/include/system/graphics.h
++++ b/include/system/graphics.h
+@@ -318,7 +318,21 @@ enum {
+     /* Legacy formats (deprecated), used by ImageFormat.java */
+     HAL_PIXEL_FORMAT_YCbCr_422_SP       = 0x10, // NV16
+     HAL_PIXEL_FORMAT_YCrCb_420_SP       = 0x11, // NV21
++#ifdef SPRD_HARDWARE
++    HAL_PIXEL_FORMAT_YCbCr_422_P        = 0x12,
++    HAL_PIXEL_FORMAT_YCbCr_420_P        = 0x13,
++#endif
+     HAL_PIXEL_FORMAT_YCbCr_422_I        = 0x14, // YUY2
++#ifdef SPRD_HARDWARE
++    HAL_PIXEL_FORMAT_YCbCr_420_I        = 0x15,
++    HAL_PIXEL_FORMAT_CbYCrY_422_I       = 0x16,
++    HAL_PIXEL_FORMAT_CbYCrY_420_I       = 0x17,
++    HAL_PIXEL_FORMAT_YCbCr_420_SP_TILED = 0x18,
++    HAL_PIXEL_FORMAT_YCbCr_420_SP       = 0x19,
++    HAL_PIXEL_FORMAT_YCrCb_420_SP_TILED = 0x1A,
++    HAL_PIXEL_FORMAT_YCrCb_422_SP       = 0x1B,
++    HAL_PIXEL_FORMAT_YCrCb_420_P        = 0x1C,
++#endif
+ };
+ 
+ /*
+diff --git a/init/property_service.c b/init/property_service.c
+index 322f4d8..6d45233 100644
+--- a/init/property_service.c
++++ b/init/property_service.c
+@@ -70,6 +70,7 @@ struct {
+     { "net.lte",          AID_RADIO,    0 },
+     { "net.cdma",         AID_RADIO,    0 },
+     { "ril.",             AID_RADIO,    0 },
++    { "ril.",             AID_SYSTEM,   0 },
+     { "gsm.",             AID_RADIO,    0 },
+     { "persist.radio",    AID_RADIO,    0 },
+     { "net.dns",          AID_RADIO,    0 },
+@@ -93,8 +94,10 @@ struct {
+     { "service.adb.tcp.port", AID_SHELL,    0 },
+     { "persist.logd.size",AID_SYSTEM,   0 },
+     { "persist.sys.",     AID_SYSTEM,   0 },
++    { "persist.msms.",    AID_RADIO,   0 },//SPRD: add for dsds
+     { "persist.service.", AID_SYSTEM,   0 },
+     { "persist.security.", AID_SYSTEM,   0 },
++    { "media.", AID_MEDIA,   0 },
+     { "persist.gps.",      AID_GPS,      0 },
+     { "persist.service.bdroid.", AID_BLUETOOTH,   0 },
+     { "selinux."         , AID_SYSTEM,   0 },
+@@ -394,8 +397,8 @@ void handle_property_set_fd()
+             if (check_perms(msg.name, source_ctx)) {
+                 property_set((char*) msg.name, (char*) msg.value);
+             } else {
+-                ERROR("sys_prop: permission denied uid:%d  name:%s\n",
+-                      cr.uid, msg.name);
++                ERROR("sys_prop: permission denied pid:%d uid:%d name:%s\n",
++                      cr.pid, cr.uid, msg.name);
+             }
+ 
+             // Note: bionic's property client code assumes that the
+diff --git a/libcutils/properties.c b/libcutils/properties.c
+index b283658..7bc65bc 100644
+--- a/libcutils/properties.c
++++ b/libcutils/properties.c
+@@ -15,7 +15,7 @@
+  */
+ 
+ #define LOG_TAG "properties"
+-// #define LOG_NDEBUG 0
++#define LOG_NDEBUG 0
+ 
+ #include <stdlib.h>
+ #include <string.h>

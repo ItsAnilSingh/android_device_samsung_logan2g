@@ -12,7 +12,6 @@ $(call inherit-product-if-exists, vendor/samsung/logan2g/logan2g-vendor.mk)
 # So we do this little trick to fall back to the normal version if the hdpi doesn't exist.
 PRODUCT_AAPT_CONFIG := normal hdpi
 PRODUCT_AAPT_PREF_CONFIG := hdpi
-PRODUCT_LOCALES += hdpi
 
 # Overlays
 DEVICE_PACKAGE_OVERLAYS += device/samsung/logan2g/overlay
@@ -27,9 +26,9 @@ $(shell ln -sf -t $(LOCAL_PATH)/../../../out/target/product/logan2g/recovery/roo
 # Init files
 PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/rootdir/fstab.sc6820i:root/fstab.sc6820i \
+    $(LOCAL_PATH)/rootdir/fstab.swap:root/fstab.swap \
     $(LOCAL_PATH)/rootdir/init.sc6820i.rc:root/init.sc6820i.rc \
     $(LOCAL_PATH)/rootdir/init.sc6820i.usb.rc:root/init.sc6820i.usb.rc \
-    $(LOCAL_PATH)/rootdir/lpm.rc:root/lpm.rc \
     $(LOCAL_PATH)/rootdir/ueventd.sc6820i.rc:root/ueventd.sc6820i.rc \
     $(LOCAL_PATH)/rootdir/bin/charge:root/bin/charge \
     $(LOCAL_PATH)/rootdir/bin/poweroff_alarm:root/bin/poweroff_alarm
@@ -78,29 +77,15 @@ PRODUCT_PACKAGES += \
     libtinyalsa \
     tinymix
 
-# SPRD audio
-PRODUCT_PACKAGES += \
-    audio.primary.sc6820i \
-    audio_policy.sc6820i \
-    libaudiopolicy \
-    libaudio-resampler \
-    libvbeffect \
-    libvbpga \
-    audio_vbc_eq
-
 # RIL & Mobile data
 PRODUCT_PACKAGES += \
     libsecril-client \
     libatchannel \
     libatchannel_wrapper
 
-# Camera
+# Board
 PRODUCT_PACKAGES += \
-    libmemoryheapion
-
-# Init
-PRODUCT_PACKAGES += \
-    prop_init
+    lights.sc6820i
 
 # Web
 PRODUCT_PACKAGES += \
@@ -114,6 +99,12 @@ PRODUCT_PACKAGES += \
 PRODUCT_PACKAGES += \
     SamsungServiceMode
 
+# Use prebuilt webviewchromium
+PRODUCT_PACKAGES += \
+    webview \
+    libwebviewchromium_loader.so \
+    libwebviewchromium_plat_support.so
+
 # Charger
 PRODUCT_PACKAGES += \
     charger \
@@ -124,22 +115,10 @@ PRODUCT_PACKAGES += \
 # MTP
 # Property override must come before included property.
 PRODUCT_DEFAULT_PROPERTY_OVERRIDES += \
-    persist.sys.usb.config=mtp
-
-# Insecure ADB
-ADDITIONAL_DEFAULT_PROPERTIES += \
+    persist.sys.usb.config=adb,mtp \
+    ro.adb.secure=0 \
     ro.secure=0 \
-    ro.adb.secure=0
-
-# OpenGLRenderer Configuration
-# https://source.android.com/devices/tech/config/renderer
-PRODUCT_PROPERTY_OVERRIDES += \
-    ro.hwui.texture_cache_size=8 \
-    ro.hwui.layer_cache_size=6 \
-    ro.hwui.gradient_cache_size=0.2 \
-    ro.hwui.path_cache_size=2 \
-    ro.hwui.drop_shadow_cache_size=1 \
-    ro.hwui.r_buffer_cache_size=1
+    ro.debuggable=1
 
 # Enable Low Ram Device flag
 PRODUCT_PROPERTY_OVERRIDES += \
@@ -180,7 +159,7 @@ PRODUCT_PROPERTY_OVERRIDES += \
     dalvik.vm.heapstartsize=5m \
     dalvik.vm.heapgrowthlimit=96m \
     dalvik.vm.heapsize=128m \
-    dalvik.vm.heaptargetutilization=0.25 \
+    dalvik.vm.heaptargetutilization=0.75 \
     dalvik.vm.heapminfree=512k \
     dalvik.vm.heapmaxfree=2m \
     wifi.interface=wlan0 \
@@ -188,13 +167,26 @@ PRODUCT_PROPERTY_OVERRIDES += \
     ro.zygote.disable_gl_preload=true \
     persist.radio.multisim.config=dsds \
     ro.telephony.ril_class=SamsungLogan2GRIL \
-    ro.ril.telephony.mqanelements=5 \
     ro.telephony.call_ring.multiple=0 \
     ro.telephony.call_ring=0 \
     ro.crypto.state=unsupported
 
-# Using prebuilt webviewchromium compiled for logan2g to reduce compile time
-$(call inherit-product, $(LOCAL_PATH)/prebuilt/chromium/chromium_prebuilt.mk)
+# ART device props
+PRODUCT_PROPERTY_OVERRIDES += \
+    dalvik.vm.dex2oat-Xms=8m \
+    dalvik.vm.dex2oat-Xmx=96m \
+    dalvik.vm.dex2oat-flags=--no-watch-dog \
+    dalvik.vm.dex2oat-filter=speed \
+    dalvik.vm.image-dex2oat-Xms=48m \
+    dalvik.vm.image-dex2oat-Xmx=48m \
+    dalvik.vm.image-dex2oat-filter=everything
+
+# Force use old camera api
+PRODUCT_PROPERTY_OVERRIDES += \
+    camera2.portability.force_api=1
+
+# Using prebuilt webviewchromium to reduce compile time
+$(call inherit-product, $(LOCAL_PATH)/prebuilt/Android.mk)
 
 PRODUCT_BUILD_PROP_OVERRIDES += BUILD_UTC_DATE=0
 PRODUCT_NAME := full_logan2g

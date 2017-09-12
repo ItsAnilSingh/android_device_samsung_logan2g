@@ -1,0 +1,2 @@
+# zRam - 64MB
+/dev/block/zram0 none swap defaults zramsize=67108864,swapprio=0

@@ -10,7 +10,7 @@ $(call inherit-product, device/samsung/logan2g/device_logan2g.mk)
 # Override build properties.
 TARGET_VENDOR_PRODUCT_NAME := logan2gxx
 TARGET_VENDOR_DEVICE_NAME := logan2g
-TARGET_VENDOR_RELEASE_BUILD_ID := S7262CM110V2
+TARGET_VENDOR_RELEASE_BUILD_ID := S7262CM121V1
 
 # Device identifier. This must come after all inclusions
 PRODUCT_DEVICE := logan2g
