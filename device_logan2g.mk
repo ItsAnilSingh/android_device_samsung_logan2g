@@ -114,12 +114,6 @@ PRODUCT_DEFAULT_PROPERTY_OVERRIDES += \
     ro.secure=0 \
     ro.debuggable=1
 
-# Enable Low Ram Device flag
-PRODUCT_PROPERTY_OVERRIDES += \
-    ro.config.low_ram=true \
-    ro.config.max_starting_bg=6
-    ro.sys.fw.bg_apps_limit=6
-
 # Disable JIT
 PRODUCT_PROPERTY_OVERRIDES += \
     dalvik.vm.jit.codecachesize=0
@@ -172,10 +166,10 @@ PRODUCT_PROPERTY_OVERRIDES += \
     dalvik.vm.dex2oat-Xms=8m \
     dalvik.vm.dex2oat-Xmx=96m \
     dalvik.vm.dex2oat-flags=--no-watch-dog \
-    dalvik.vm.dex2oat-filter=speed \
+    dalvik.vm.dex2oat-filter=interpret-only \
     dalvik.vm.image-dex2oat-Xms=48m \
     dalvik.vm.image-dex2oat-Xmx=48m \
-    dalvik.vm.image-dex2oat-filter=everything
+    dalvik.vm.image-dex2oat-filter=speed
 
 # Force use old camera api
 PRODUCT_PROPERTY_OVERRIDES += \

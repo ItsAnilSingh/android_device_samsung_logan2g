@@ -17,6 +17,22 @@ persist.ttydev=ttyVUART0
 ro.kernel.qemu=0
 
 persist.sys.storage_preload=1
+persist.sys.root_access=1
+persist.sys.force_highendgfx=true
+persist.sys.purgeable_assets=1
+
+# Render UI with GPU
+debug.sf.hw=1
+
+# Increase overall touch responsiveness
+debug.performance.tuning=1
+video.accelerate.hw=1
+
+# Faster scrolling
+ro.max.fling_velocity=4000
+
+# Display Video acceleration and HW debugging
+debug.egl.hw=1
 
 # Network
 ril.sim2.present=1
@@ -28,6 +44,10 @@ ro.ril.hsxpa=1
 ro.ril.ecclist=112,911,#911,*911
 
 # low RAM optimizations
+ro.config.low_ram=true
 config.disable_atlas=true
-ro.config.max_starting_bg=8
-ro.sys.fw.bg_apps_limit=16
+ro.config.max_starting_bg=6
+ro.sys.fw.bg_apps_limit=12
+
+# Setup wizard ON
+ro.setupwizard.enterprise_mode=1
