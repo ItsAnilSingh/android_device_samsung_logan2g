@@ -122,7 +122,9 @@ PRODUCT_DEFAULT_PROPERTY_OVERRIDES += \
 
 # Enable Low Ram Device flag
 PRODUCT_PROPERTY_OVERRIDES += \
-    ro.config.low_ram=true
+    ro.config.low_ram=true \
+    ro.config.max_starting_bg=6
+    ro.sys.fw.bg_apps_limit=6
 
 # Disable JIT
 PRODUCT_PROPERTY_OVERRIDES += \
