@@ -99,12 +99,6 @@ PRODUCT_PACKAGES += \
 PRODUCT_PACKAGES += \
     SamsungServiceMode
 
-# Use prebuilt webviewchromium
-PRODUCT_PACKAGES += \
-    webview \
-    libwebviewchromium_loader.so \
-    libwebviewchromium_plat_support.so
-
 # Charger
 PRODUCT_PACKAGES += \
     charger \
@@ -186,9 +180,6 @@ PRODUCT_PROPERTY_OVERRIDES += \
 # Force use old camera api
 PRODUCT_PROPERTY_OVERRIDES += \
     camera2.portability.force_api=1
-
-# Using prebuilt webviewchromium to reduce compile time
-$(call inherit-product, $(LOCAL_PATH)/prebuilt/Android.mk)
 
 PRODUCT_BUILD_PROP_OVERRIDES += BUILD_UTC_DATE=0
 PRODUCT_NAME := full_logan2g

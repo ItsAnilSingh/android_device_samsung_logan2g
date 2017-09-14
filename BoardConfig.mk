@@ -158,9 +158,6 @@ BOARD_SEPOLICY_UNION += \
     slog.te \
     surfaceflinger.te
 
-# Using prebuilt webviewchromium compiled for logan2g to reduce compile time
-PRODUCT_PREBUILT_WEBVIEWCHROMIUM := yes
-
 # Enable dex-preoptimization to speed up the first boot sequence
 # of an SDK AVD. Note that this operation only works on Linux for now
 ifeq ($(HOST_OS),linux)
