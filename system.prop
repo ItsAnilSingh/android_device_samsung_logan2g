@@ -7,7 +7,7 @@ ro.product.hardware=logan
 ro.lcd_brightness=160
 debug.hwui.render_dirty_regions=false
 
-# delay for ConnectivityChange broadcast (ms)
+# Delay for ConnectivityChange broadcast (ms)
 conn.connectivity_change_delay=0
 
 # NK console device
@@ -15,24 +15,6 @@ persist.ttydev=ttyVUART0
 
 # Open GL
 ro.kernel.qemu=0
-
-persist.sys.storage_preload=1
-persist.sys.root_access=1
-persist.sys.force_highendgfx=true
-persist.sys.purgeable_assets=1
-
-# Render UI with GPU
-debug.sf.hw=1
-
-# Increase overall touch responsiveness
-debug.performance.tuning=1
-video.accelerate.hw=1
-
-# Faster scrolling
-ro.max.fling_velocity=4000
-
-# Display Video acceleration and HW debugging
-debug.egl.hw=1
 
 # Network
 ril.sim2.present=1
@@ -43,11 +25,43 @@ gsm.current.phone-type=1
 ro.ril.hsxpa=1
 ro.ril.ecclist=112,911,#911,*911
 
-# low RAM optimizations
+persist.sys.storage_preload=1
+persist.sys.root_access=1
+
+# Low RAM optimizations
 ro.config.low_ram=true
+persist.sys.purgeable_assets=1
 config.disable_atlas=true
 ro.config.max_starting_bg=6
 ro.sys.fw.bg_apps_limit=12
+
+# MultiTouch support
+ro.product.multi_touch_enabled=true
+ro.product.max_num_touch=2
+
+# Transparency for statusbar
+persist.sys.force_highendgfx=true
+
+# Increase touch responsiveness through HW-Rendering
+debug.sf.hw=1
+persist.sys.ui.hw=1
+debug.performance.tuning=1
+video.accelerate.hw=1
+debug.egl.profiler=1
+debug.egl.hw=1
+debug.composition.type=gpu
+
+# Voice call clarity
+ro.ril.enable.amr.wideband=1
+
+# Faster scrolling
+ro.max.fling_velocity=4000
+
+# Partition path
+ro.product.partitionpath=/dev/block/platform/sprd-sdhci.3/by-name/
+
+# Enable adbd during first boot (for dalvik cache problems)
+persist.service.adb.enable=1
 
 # Setup wizard ON
 ro.setupwizard.enterprise_mode=1

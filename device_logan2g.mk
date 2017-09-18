@@ -99,6 +99,12 @@ PRODUCT_PACKAGES += \
 PRODUCT_PACKAGES += \
     SamsungServiceMode
 
+# Use working prebuilt webviewchromium for logan2g
+PRODUCT_PACKAGES += \
+    webview \
+    libwebviewchromium_loader.so \
+    libwebviewchromium_plat_support.so
+
 # Charger
 PRODUCT_PACKAGES += \
     charger \
@@ -109,10 +115,13 @@ PRODUCT_PACKAGES += \
 # MTP
 # Property override must come before included property.
 PRODUCT_DEFAULT_PROPERTY_OVERRIDES += \
-    persist.sys.usb.config=adb,mtp \
-    ro.adb.secure=0 \
+    persist.sys.usb.config=mtp
+
+# Insecure ADB
+ADDITIONAL_DEFAULT_PROPERTIES += \
     ro.secure=0 \
-    ro.debuggable=1
+    ro.adb.secure=0 \
+    persist.service.adb.enable=0
 
 # Disable JIT
 PRODUCT_PROPERTY_OVERRIDES += \
@@ -174,6 +183,12 @@ PRODUCT_PROPERTY_OVERRIDES += \
 # Force use old camera api
 PRODUCT_PROPERTY_OVERRIDES += \
     camera2.portability.force_api=1
+
+# Using working prebuilt webviewchromium compiled for logan2g to reduce compile time
+$(call inherit-product, $(LOCAL_PATH)/prebuilt/Android.mk)
+
+# Workaround for launcher
+$(call inherit-product-if-exists, device/samsung/workaround/launcher.mk)
 
 PRODUCT_BUILD_PROP_OVERRIDES += BUILD_UTC_DATE=0
 PRODUCT_NAME := full_logan2g

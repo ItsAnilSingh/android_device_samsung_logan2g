@@ -9,7 +9,7 @@ TARGET_ARCH := arm
 TARGET_ARCH_VARIANT := armv7-a-neon
 TARGET_CPU_ABI := armeabi-v7a
 TARGET_CPU_ABI2 := armeabi
-TARGET_CPU_SMP := false
+TARGET_CPU_SMP := true
 # Cortex-A9 is more closer to Cortex-A5 than Cortex-A7
 TARGET_CPU_VARIANT := cortex-a9
 ARCH_ARM_HAVE_ARMV7A := true
@@ -68,12 +68,17 @@ TARGET_USE_CUSTOM_LUN_FILE_PATH := /sys/devices/platform/dwc_otg.0/gadget/lun0/f
 
 # Hardware rendering
 USE_OPENGL_RENDERER := true
+BOARD_EGL_CFG := $(DEVICE_FOLDER)/egl/egl.cfg
 BOARD_EGL_NEEDS_FNW := true
 BOARD_USE_MHEAP_SCREENSHOT := true
 BOARD_EGL_WORKAROUND_BUG_10194508 := true
 TARGET_RUNNING_WITHOUT_SYNC_FRAMEWORK := true
 HWUI_COMPILE_FOR_PERF := true
 COMMON_GLOBAL_CFLAGS += -DNEEDS_VECTORIMPL_SYMBOLS -DADD_LEGACY_ACQUIRE_BUFFER_SYMBOL -DREFBASE_JB_MR1_COMPAT_SYMBOLS
+COMMON_GLOBAL_CFLAGS += -DBOARD_CANT_REALLOCATE_OMX_BUFFERS
+
+# GT-S7262 has OpenGL ES 2.0 implementation
+BOARD_USE_BGRA_8888 := true
 
 # Camera
 USE_CAMERA_STUB := true
@@ -113,6 +118,9 @@ BOARD_HAVE_SAMSUNG_WIFI          := true
 BOARD_RIL_CLASS := ../../../$(DEVICE_FOLDER)/ril/
 COMMON_GLOBAL_CFLAGS += -DSEC_PRODUCT_FEATURE_RIL_CALL_DUALMODE_CDMAGSM
 BOARD_USE_LIBATCHANNEL_WRAPPER := true
+
+# Media
+USE_SAMSUNG_COLORFORMAT := true
 
 # FM Radio
 BOARD_HAVE_FM_RADIO := true
@@ -157,6 +165,9 @@ BOARD_SEPOLICY_UNION += \
     pty_symlink.te \
     slog.te \
     surfaceflinger.te
+
+# Using working prebuilt webviewchromium compiled for logan2g to reduce compile time
+PRODUCT_PREBUILT_WEBVIEWCHROMIUM := yes
 
 # Enable dex-preoptimization to speed up the first boot sequence
 # of an SDK AVD. Note that this operation only works on Linux for now
