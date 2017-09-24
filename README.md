@@ -32,6 +32,11 @@
 * cd packages/apps/
 * git clone -b cm-12.1 https://github.com/CyanogenMod/android_packages_apps_SamsungServiceMode.git SamsungServiceMode
 
+### Snap Camera
+* Open terminal in Cyanogenmod source directory.
+* cd packages/apps/
+* git clone -b cm-12.1 https://github.com/CyanogenMod/android_packages_apps_Snap.git Snap
+
 ### Patches
 * Apply patches provided in patches folder.
 

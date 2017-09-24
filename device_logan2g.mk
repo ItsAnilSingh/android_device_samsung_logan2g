@@ -99,6 +99,11 @@ PRODUCT_PACKAGES += \
 PRODUCT_PACKAGES += \
     SamsungServiceMode
 
+# Snap Camera
+PRODUCT_PACKAGES += \
+    Snap \
+    Gallery2
+
 # Use working prebuilt webviewchromium for logan2g
 PRODUCT_PACKAGES += \
     webview \
